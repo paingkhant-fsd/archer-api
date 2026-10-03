@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  CLIENT
+  FREELANCER
+  ADMIN
+}
+
+enum Currency {
+  USD
+  MMK
+}
+
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+  IN_REVIEW
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  CLOSED
+}
+
+enum ProposalStatus {
+  SUBMITTED
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  passwordHash    String
+  name            String
+  role            Role             @default(FREELANCER)
+  headline        String?
+  biography       String?
+  location        String?
+  avatarUrl       String?
+  hourlyRate      Decimal?
+  hourlyCurrency  Currency?
+  availability    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  refreshTokens   RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  projects        Project[]
+  proposals       Proposal[]
+  reviewsGiven    Review[]         @relation("ReviewAuthor")
+  reviewsReceived Review[]         @relation("ReviewSubject")
+  notifications   Notification[]
+  portfolioItems  PortfolioItem[]
+  userSkills      UserSkill[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, revokedAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, usedAt])
+}
+
+model Skill {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  projectSkills ProjectSkill[]
+  userSkills  UserSkill[]
+}
+
+model UserSkill {
+  userId    String
+  skillId   String
+  years     Int?
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  @@id([userId, skillId])
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String
+  url         String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  projects Project[]
+}
+
+model Project {
+  id              String          @id @default(cuid())
+  clientId        String
+  categoryId      String
+  title           String
+  description     String
+  minBudget       Decimal?
+  maxBudget       Decimal?
+  currency        Currency
+  deadline        DateTime?
+  status          ProjectStatus   @default(DRAFT)
+  cancellationReason String?
+  cancelledById   String?
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  client          User            @relation(fields: [clientId], references: [id])
+  category        Category        @relation(fields: [categoryId], references: [id])
+  projectSkills   ProjectSkill[]
+  proposals       Proposal[]
+  reviews        Review[]
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@index([currency])
+}
+
+model ProjectSkill {
+  projectId String
+  skillId   String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill     Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  @@id([projectId, skillId])
+}
+
+model Proposal {
+  id                 String         @id @default(cuid())
+  projectId          String
+  freelancerId       String
+  coverLetter        String
+  proposedPrice      Decimal
+  currency           Currency
+  estimatedDuration  String
+  status             ProposalStatus @default(SUBMITTED)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  project            Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  freelancer         User           @relation(fields: [freelancerId], references: [id])
+  @@unique([projectId, freelancerId])
+  @@index([projectId, status])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  projectId  String
+  authorId   String
+  subjectId  String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author     User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  subject    User     @relation("ReviewSubject", fields: [subjectId], references: [id])
+  @@unique([projectId, authorId])
+  @@index([subjectId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt, createdAt])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  metadata  String?
+  createdAt DateTime @default(now())
+  @@index([entity, entityId])
+  @@index([actorId, createdAt])
+}

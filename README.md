@@ -78,3 +78,13 @@ Project discovery supports `search`, `categoryId`, `skillId`, `currency`, `minBu
 ## Environment
 
 Copy `.env.example` to `.env` and set local values for the port, SQLite database, JWT secrets, token lifetimes, and web-client CORS origin. Never commit `.env`.
+
+## Troubleshooting
+
+- If Prisma reports that its client is missing or stale, run `npm run prisma:generate`.
+- If the local database schema is missing, run `npm run prisma:migrate -- --name init` and then `npm run prisma:seed`.
+- If a browser client is blocked by CORS, verify that `CORS_ORIGIN` matches the client's exact local origin.
+
+## License
+
+Archer API is available under the [MIT License](./LICENSE).

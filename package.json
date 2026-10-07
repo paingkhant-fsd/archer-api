@@ -2,6 +2,7 @@
   "name": "archer-api",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Archer freelance platform API",
   "type": "module",
   "scripts": {

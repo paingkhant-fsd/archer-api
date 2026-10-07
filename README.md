@@ -68,6 +68,7 @@ Project discovery supports `search`, `categoryId`, `skillId`, `currency`, `minBu
 - `npm run dev` - Run the development server with watch mode.
 - `npm run build` - Compile the API.
 - `npm run typecheck` - Check TypeScript without emitting files.
+- `npm run test:typecheck` - Type-check the API test suite and its configuration.
 - `npm run lint` - Run ESLint.
 - `npm test` - Run tests.
 - `npm run prisma:generate` - Generate the Prisma client.

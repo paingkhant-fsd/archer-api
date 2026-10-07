@@ -27,17 +27,6 @@ const projectQuerySchema = z.object({
   categoryId: z.string().cuid().optional(),
   skillId: z.string().cuid().optional(),
   currency: z.enum(["USD", "MMK"]).optional(),
-  status: z
-    .enum([
-      "DRAFT",
-      "PUBLISHED",
-      "IN_REVIEW",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "CANCELLED",
-      "CLOSED",
-    ])
-    .optional(),
   minBudget: z.coerce.number().nonnegative().optional(),
   maxBudget: z.coerce.number().nonnegative().optional(),
   page: z.coerce.number().int().positive().default(1),
@@ -90,7 +79,7 @@ router.get("/projects", async (req, res, next) => {
   try {
     const input = projectQuerySchema.parse(req.query);
     const where = {
-      status: input.status ?? "PUBLISHED",
+      status: "PUBLISHED" as const,
       ...(input.categoryId ? { categoryId: input.categoryId } : {}),
       ...(input.currency ? { currency: input.currency } : {}),
       ...(input.skillId
